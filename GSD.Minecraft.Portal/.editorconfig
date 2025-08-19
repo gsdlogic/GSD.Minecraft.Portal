@@ -1,11 +1,3 @@
-root = true
-
-[*]
-tab_width = 4
-indent_size = 4
-indent_style = space
-end_of_line = crlf
-charset = utf-8
 
 [*.{cshtml,csproj,html,json,props,razor,wixproj,wxl,wxs,xaml,xml,yaml}]
 tab_width = 2

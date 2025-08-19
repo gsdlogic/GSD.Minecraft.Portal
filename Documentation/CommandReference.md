@@ -1,0 +1,33 @@
+# Command Reference
+
+## WSL
+
+Install Ubuntu 22.04 distribution:
+
+```
+wsl --install -d Ubuntu-22.04
+```
+
+Uninstall Ubuntu 22.04 distribution:
+
+```
+wsl --unregister Ubuntu-22.04
+```
+
+Export distribution:
+
+```
+wsl --export Ubuntu-22.04 publish\wsl\ubuntu2204.tar
+```
+
+Import distribution:
+
+```
+wsl --import mcportal-test publish\wsl\mcportal-test publish\wsl\ubuntu2204.tar --version 2
+```
+
+Launch distribution:
+
+```
+wsl -d mcportal-test
+```

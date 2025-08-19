@@ -1,0 +1,11 @@
+root = true
+
+[*]
+tab_width = 4
+indent_size = 4
+indent_style = space
+end_of_line = crlf
+charset = utf-8
+
+[*.sh]
+end_of_line = lf
