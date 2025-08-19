@@ -10,7 +10,7 @@
 
     <!--  Strong Naming  -->
     <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>../GSD.Minecraft.Portal.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>../../GSD.Minecraft.Portal.snk</AssemblyOriginatorKeyFile>
 
     <!--  Package  -->
     <Company>GSD Logic</Company>

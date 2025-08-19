@@ -23,6 +23,8 @@ dotnet_style_prefer_inferred_anonymous_type_member_names = false
 dotnet_style_prefer_inferred_tuple_names = false
 csharp_using_directive_placement = inside_namespace
 
+dotnet_diagnostic.CA1515.severity = none # Consider making public types internal
+
 dotnet_diagnostic.IDE0010.severity = none # Add missing cases to switch statement
 dotnet_diagnostic.IDE0045.severity = none # Use conditional expression for assignment
 dotnet_diagnostic.IDE0046.severity = none # Use conditional expression for return
@@ -33,6 +35,3 @@ dotnet_diagnostic.IDE0072.severity = none # Add missing cases to switch expressi
 [*.cshtml.cs]
 dotnet_diagnostic.CA1812.severity = none # Avoid uninstantiated internal classes
 dotnet_diagnostic.SA1649.severity = none # File name must match type name
-
-[*.razor.cs]
-dotnet_diagnostic.CA1515.severity = none # Consider making public types internal
