@@ -7,7 +7,7 @@ set TAR_FILE=%TAR_FOLDER%\ubuntu2204.tar
 set DISTRO_NAME=mcportal-test
 set IMPORT_PATH=%TAR_FOLDER%\%DISTRO_NAME%
 
-call Resources\Scripts\publish-win.bat
+call Resources\Windows\publish-linux.bat
 
 if exist "%TAR_FILE%" GOTO startup
 
@@ -25,7 +25,7 @@ echo Importing distribution...
 wsl --import %DISTRO_NAME% "%IMPORT_PATH%" "%TAR_FILE%" --version 2
 
 echo Initializing distribution...
-wsl -d %DISTRO_NAME% -- sudo bash Resources/Scripts/init-portal.sh
+wsl -d %DISTRO_NAME% -- sudo bash Resources/Linux/init-portal.sh
 
 echo Launching distribution for test...
 wsl -d %DISTRO_NAME%

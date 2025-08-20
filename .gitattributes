@@ -62,5 +62,5 @@
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
 
-# Force LF line endings for shell scripts
-*.sh text eol=lf
+# Force Unix line endings and UTF-8 for Linux resources
+Resources/Linux/** text eol=lf working-tree-encoding=UTF-8
