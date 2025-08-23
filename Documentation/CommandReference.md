@@ -2,6 +2,12 @@
 
 ## WSL
 
+List installed distributions:
+
+```
+wsl -l
+```
+
 Install Ubuntu 22.04 distribution:
 
 ```
