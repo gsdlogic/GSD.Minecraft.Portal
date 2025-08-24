@@ -1,8 +1,7 @@
 @echo off
 setlocal
 
-set REPO_ROOT=%cd%
-set TAR_FOLDER=%REPO_ROOT%\publish\wsl
+set TAR_FOLDER=publish\wsl
 set TAR_FILE=%TAR_FOLDER%\ubuntu2204.tar
 set DISTRO_NAME=mcportal-test
 set IMPORT_PATH=%TAR_FOLDER%\%DISTRO_NAME%

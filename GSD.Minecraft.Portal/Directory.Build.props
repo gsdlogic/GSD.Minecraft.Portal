@@ -4,6 +4,7 @@
     <!--  Build  -->
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
 
     <!--  Output  -->
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
