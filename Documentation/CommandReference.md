@@ -15,6 +15,17 @@ docker login cr.examlple.com
 docker push cr.example.com/gsd-minecraft-portal:latest
 ```
 
+Start container from image:
+
+```
+docker run -d \
+    --name GSD.Minecraft.Portal \
+    -p 19132:19132/udp \
+    -p \8080:8080 \
+    -v C:\Users\Username\AppData\Local\GSD\MinecraftPortal:/usr/share/gsd/mcportal \
+    cr.example.com/gsd-minecraft-portal:latest
+```
+
 ## WSL
 
 List installed distributions:
