@@ -8,12 +8,13 @@ WORKDIR /app
 
 # Install Bedrock dependencies
 USER root
-RUN apt-get update && apt-get install -y \
-    libcurl4 \
-    libssl3 \
-    unzip \
- && rm -rf /var/lib/apt/lists/*
- USER app
+RUN apt-get update && \
+    apt-get install -y \
+        libcurl4 \
+        libssl3 \
+        unzip && \
+    rm -rf /var/lib/apt/lists/*
+USER app
 
 EXPOSE 8080
 EXPOSE 8081
