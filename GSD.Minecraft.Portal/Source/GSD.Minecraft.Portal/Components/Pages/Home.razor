@@ -2,10 +2,18 @@
 
 <PageTitle>GSD Minecraft Portal</PageTitle>
 
-<div>
+<p>
   <button type="button" @onclick="DownloadAsync">Download</button>
-</div>
+</p>
 
 <p>
-  @StatusMessage
+  <button type="button" @onclick="ExtractAsync">Extract</button>
 </p>
+
+<p>
+  <button type="button" @onclick="StartServerAsync">Start Server</button>
+</p>
+
+<pre>
+  @StatusMessage
+</pre>
