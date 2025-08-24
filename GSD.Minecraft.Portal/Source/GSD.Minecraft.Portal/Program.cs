@@ -5,6 +5,7 @@
 namespace GSD.Minecraft.Portal;
 
 using GSD.Minecraft.Portal.Components;
+using GSD.Minecraft.Portal.Services;
 
 /// <summary>
 /// Contains the main entry point for the application.
@@ -21,6 +22,8 @@ public static class Program
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        builder.Services.AddServerManagement();
 
         var app = builder.Build();
 

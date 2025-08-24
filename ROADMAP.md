@@ -8,10 +8,11 @@
 ## Milestones
 - [x] Initial project setup with Docker and VS
 - [x] Server download, extraction and startup
-- [ ] Extract server manager and configure dependency injection
-- [ ] Display server status
+- [x] Extract server manager and configure dependency injection
+- [x] Sending commands from the web interface
 - [ ] Provide a UI to configure server properties
-- [ ] Sending commands from the web interface
+- [ ] Capture process exit and handle graceful shutdown
+- [ ] Display server status
 - [ ] Capture user logins and elevate user permissins
 - [ ] Set game rules from the web interface
 - [ ] Logging to disk and UI display
@@ -21,3 +22,4 @@
 ## Future Ideas
 - Automatic server updates
 - Plugin/mod management
+- Provide a seed database

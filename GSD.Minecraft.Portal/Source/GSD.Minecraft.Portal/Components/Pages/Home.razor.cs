@@ -4,15 +4,8 @@
 
 namespace GSD.Minecraft.Portal.Components.Pages;
 
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO.Compression;
-using System.Net.Sockets;
-using System.Security;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using GSD.Minecraft.Portal.Services;
+using Microsoft.AspNetCore.Components;
 
 /// <summary>
 /// Contains interaction logic for the home page.
@@ -20,42 +13,20 @@ using System.Text.Json.Nodes;
 public partial class Home
 {
     /// <summary>
-    /// The server index.
+    /// Gets or sets the command to send to the server.
     /// </summary>
-    private const int ServerIndex = 1;
+    public string Command { get; set; }
 
     /// <summary>
-    /// The type of server to download.
+    /// Gets or sets the output from the server.
     /// </summary>
-    private static readonly string DownloadType = OperatingSystem.IsWindows() ?
-        "serverBedrockWindows" :
-        "serverBedrockLinux";
+    public string Output { get; set; }
 
     /// <summary>
-    /// The endpoint for obtaining the links to download the servers.
+    /// Gets or sets the server manager.
     /// </summary>
-    private static readonly Uri Endpoint = new("https://net-secondary.web.minecraft-services.net/api/v1.0/download/links");
-
-    /// <summary>
-    /// The root path for local file storage.
-    /// </summary>
-    private static readonly string PortalDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GSD", "MinecraftPortal") :
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "gsd", "mcportal");
-
-    /// <summary>
-    /// The path to download the servers.
-    /// </summary>
-    private static readonly string ImagesDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(PortalDirectory, "Images") :
-        Path.Combine(PortalDirectory, "images");
-
-    /// <summary>
-    /// The path to extract the servers.
-    /// </summary>
-    private static readonly string ServersDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(PortalDirectory, "Servers") :
-        Path.Combine(PortalDirectory, "servers");
+    [Inject]
+    public ServerManager ServerManager { get; set; }
 
     /// <summary>
     /// Gets or sets the status message.
@@ -63,23 +34,16 @@ public partial class Home
     public string StatusMessage { get; set; }
 
     /// <summary>
-    /// Gets the link to download a server.
+    /// Method invoked when the component is ready to start, having received its
+    /// initial parameters from its parent in the render tree.
     /// </summary>
-    /// <param name="downloadType">The type of server to download.</param>
-    /// <returns>A <see cref="Task" /> representing any asynchronous operation whose result is the link to download a server.</returns>
-    public static async Task<string> GetDownloadUrlAsync(string downloadType)
+    protected override void OnInitialized()
     {
-        using var http = new HttpClient();
-        var json = await http.GetStringAsync(Endpoint).ConfigureAwait(false);
-        var root = JsonSerializer.Deserialize<JsonObject>(json);
-        var links = root?["result"]?["links"]?.AsArray();
-
-        return links?.FirstOrDefault(link =>
-            {
-                var value = link["downloadType"]?.GetValue<string>();
-                return (value != null) && value.Equals(downloadType, StringComparison.Ordinal);
-            })
-            ?["downloadUrl"]?.GetValue<string>();
+        this.ServerManager.OutputChanged += (_, _) =>
+        {
+            this.Output = this.ServerManager.Output;
+            _ = this.InvokeAsync(this.StateHasChanged);
+        };
     }
 
     /// <summary>
@@ -90,44 +54,18 @@ public partial class Home
     {
         try
         {
-            var downloadUrl = await GetDownloadUrlAsync(DownloadType).ConfigureAwait(false);
-
-            if (downloadUrl == null)
+            var progress = new Progress<string>(message =>
             {
-                this.StatusMessage = "Download URL not found.";
-                return;
-            }
+                this.StatusMessage = message;
+                _ = this.InvokeAsync(this.StateHasChanged);
+            });
 
-            var uri = new Uri(downloadUrl);
-            var fileName = Path.GetFileName(uri.LocalPath);
-            var filePath = Path.Combine(ImagesDirectory, fileName);
-            this.StatusMessage = $"Downloading {fileName}...";
-            await this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
-
-            Directory.CreateDirectory(ImagesDirectory);
-
-            using var httpClient = new HttpClient();
-
-            using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await using var fsDisposable = fs.ConfigureAwait(false);
-
-            await response.Content.CopyToAsync(fs).ConfigureAwait(false);
-
-            this.StatusMessage = $"Download complete: {filePath}";
+            await this.ServerManager.DownloadAsync(progress).ConfigureAwait(false);
+            this.StatusMessage = "Download complete.";
         }
-        catch (Exception ex) when (ex is
-            HttpRequestException or
-            SocketException or
-            OperationCanceledException or
-            IOException or
-            UnauthorizedAccessException or
-            SecurityException or
-            NotSupportedException)
+        catch (InvalidOperationException ex)
         {
-            this.StatusMessage = $"Download failed: {ex.Message}";
+            this.StatusMessage = ex.Message;
         }
     }
 
@@ -139,151 +77,65 @@ public partial class Home
     {
         try
         {
-            var imagePath = Directory.GetFiles(ImagesDirectory, "*.zip").FirstOrDefault();
-
-            if (imagePath == null)
+            var progress = new Progress<string>(message =>
             {
-                this.StatusMessage = "No image found.";
-                return;
-            }
+                this.StatusMessage = message;
+                _ = this.InvokeAsync(this.StateHasChanged);
+            });
 
-            var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
-            var fileName = Path.GetFileName(imagePath);
-            this.StatusMessage = $"Extracting {fileName} to {serverDirectory}...";
-            await this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
-
-            if (Directory.Exists(serverDirectory))
-            {
-                Directory.Delete(serverDirectory, true);
-            }
-
-            Directory.CreateDirectory(serverDirectory);
-
-            await Task.Run(() => ExtractFilesAsync(imagePath, serverDirectory)).ConfigureAwait(false);
-
-            this.StatusMessage = $"Extracted {fileName} to {serverDirectory}";
+            await this.ServerManager.ExtractAsync(progress).ConfigureAwait(false);
+            this.StatusMessage = "Extracted server image.";
         }
-        catch (Exception ex) when (ex is
-            IOException or
-            UnauthorizedAccessException or
-            SecurityException or
-            InvalidDataException or
-            NotSupportedException)
+        catch (InvalidOperationException ex)
         {
-            this.StatusMessage = $"Extraction failed: {ex.Message}";
+            this.StatusMessage = ex.Message;
         }
+    }
 
-        return;
-
-        async Task ExtractFilesAsync(string imagePath, string serverDirectory)
+    /// <summary>
+    /// Sends a command to the server.
+    /// </summary>
+    private void SendCommand()
+    {
+        try
         {
-            var sw = Stopwatch.StartNew();
-
-            using var archive = ZipFile.OpenRead(imagePath);
-            var total = archive.Entries.Count;
-            var processed = 0;
-
-            foreach (var entry in archive.Entries)
-            {
-                var destinationPath = Path.Combine(serverDirectory, entry.FullName);
-
-                if (string.IsNullOrEmpty(entry.Name))
-                {
-                    Directory.CreateDirectory(destinationPath);
-                }
-                else
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    entry.ExtractToFile(destinationPath, true);
-                }
-
-                processed++;
-
-                // Update status every N files or 500ms
-                if ((processed % 10 == 0) || (sw.ElapsedMilliseconds > 500))
-                {
-                    this.StatusMessage = $"Extracting {processed}/{total} files...";
-                    await this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
-                    sw.Restart();
-                }
-            }
+            this.ServerManager.SendCommand(this.Command);
+        }
+        catch (InvalidOperationException ex)
+        {
+            this.StatusMessage = ex.Message;
         }
     }
 
     /// <summary>
     /// Starts the server.
     /// </summary>
-    /// <returns>A <see cref="Task" /> representing any asynchronous operation.</returns>
-    private async Task StartServerAsync()
+    private void StartServer()
     {
-        var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
-        var serverExecutable = Path.Combine(serverDirectory, OperatingSystem.IsWindows() ? "bedrock_server.exe" : "bedrock_server");
-
-        if (!File.Exists(serverExecutable))
-        {
-            this.StatusMessage = "Server executable not found.";
-            return;
-        }
-
         try
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = serverExecutable,
-                WorkingDirectory = serverDirectory,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-            };
-
-            if (!OperatingSystem.IsWindows())
-            {
-                // Required for Bedrock Linux server
-                psi.Environment["LD_LIBRARY_PATH"] = serverDirectory;
-            }
-
-            var log = new StringBuilder();
-
-            using var process = new Process();
-            process.StartInfo = psi;
-            process.EnableRaisingEvents = true;
-
-            process.OutputDataReceived += (s, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.Data))
-                {
-                    log.AppendLine(e.Data);
-                    this.StatusMessage = log.ToString();
-                    _ = this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
-                }
-            };
-
-            process.ErrorDataReceived += (s, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.Data))
-                {
-                    log.AppendLine(e.Data);
-                    this.StatusMessage = log.ToString();
-                    _ = this.InvokeAsync(this.StateHasChanged).ConfigureAwait(false);
-                }
-            };
-
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
+            this.ServerManager.StartServer();
             this.StatusMessage = "Minecraft server started.";
-
-            await process.WaitForExitAsync().ConfigureAwait(false);
         }
-        catch (Exception ex) when (ex is
-            InvalidOperationException or
-            Win32Exception or
-            OperationCanceledException or
-            PlatformNotSupportedException)
+        catch (InvalidOperationException ex)
         {
-            this.StatusMessage = $"Failed to start server: {ex.Message}";
+            this.StatusMessage = ex.Message;
+        }
+    }
+
+    /// <summary>
+    /// Stops the server.
+    /// </summary>
+    private void StopServer()
+    {
+        try
+        {
+            this.ServerManager.SendCommand("stop");
+            this.StatusMessage = "Minecraft server stopped.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            this.StatusMessage = ex.Message;
         }
     }
 }

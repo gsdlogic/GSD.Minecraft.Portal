@@ -11,9 +11,20 @@
 </p>
 
 <p>
-  <button type="button" @onclick="StartServerAsync">Start Server</button>
+  <button type="button" @onclick="StartServer">Start Server</button>
+  <button type="button" @onclick="StopServer">Stop Server</button>
+
+</p>
+
+<p>
+  <input @bind-value="Command"/>
+  <button type="button" @onclick="SendCommand">Send</button>
+</p>
+
+<p>
+  @StatusMessage
 </p>
 
 <pre>
-  @StatusMessage
+  @Output
 </pre>

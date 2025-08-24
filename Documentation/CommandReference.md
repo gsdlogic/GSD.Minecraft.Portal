@@ -1,5 +1,20 @@
 # Command Reference
 
+## Docker
+
+Build image (run from solution directory):
+
+```
+docker build -f "Source\GSD.Minecraft.Portal\Dockerfile" --force-rm -t cr.example.com/gsd-minecraft-portal:latest --target final .
+```
+
+Push image to container registry:
+
+```
+docker login cr.examlple.com
+docker push cr.example.com/gsd-minecraft-portal:latest
+```
+
 ## WSL
 
 List installed distributions:
