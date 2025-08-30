@@ -1,18 +1,18 @@
 // <copyright file="ServerManager.cs" company="GSD Logic">
-//   Copyright © 2025 GSD Logic. All Rights Reserved.
+// Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
 namespace GSD.Minecraft.Portal.Services;
 
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO.Compression;
 using System.Net.Sockets;
 using System.Security;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.Options;
 
 /// <summary>
 /// Manages the Minecraft server.
@@ -20,47 +20,23 @@ using System.Text.Json.Nodes;
 public class ServerManager : IDisposable
 {
     /// <summary>
-    /// The server index.
+    /// The settings for the server manager.
     /// </summary>
-    private const int ServerIndex = 1;
-
-    /// <summary>
-    /// The type of server to download.
-    /// </summary>
-    private static readonly string DownloadType = OperatingSystem.IsWindows() ?
-        "serverBedrockWindows" :
-        "serverBedrockLinux";
-
-    /// <summary>
-    /// The endpoint for obtaining the links to download the servers.
-    /// </summary>
-    private static readonly Uri Endpoint = new("https://net-secondary.web.minecraft-services.net/api/v1.0/download/links");
-
-    /// <summary>
-    /// The root path for local file storage.
-    /// </summary>
-    private static readonly string PortalDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GSD", "MinecraftPortal") :
-        "/opt/mcportal";
-
-    /// <summary>
-    /// The path to download the servers.
-    /// </summary>
-    private static readonly string ImagesDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(PortalDirectory, "Images") :
-        Path.Combine(PortalDirectory, "images");
-
-    /// <summary>
-    /// The path to extract the servers.
-    /// </summary>
-    private static readonly string ServersDirectory = OperatingSystem.IsWindows() ?
-        Path.Combine(PortalDirectory, "Servers") :
-        Path.Combine(PortalDirectory, "servers");
+    private readonly ServerManagerSettings settings;
 
     /// <summary>
     /// The server process.
     /// </summary>
     private Process serverProcess;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ServerManager" /> class.
+    /// </summary>
+    /// <param name="options">The options to configure the settings for the server manager.</param>
+    public ServerManager(IOptions<ServerManagerSettings> options)
+    {
+        this.settings = options?.Value ?? throw new ArgumentNullException(nameof(options));
+    }
 
     /// <summary>
     /// Finalizes an instance of the <see cref="ServerManager" /> class.
@@ -98,15 +74,15 @@ public class ServerManager : IDisposable
     {
         try
         {
-            var downloadUrl = await GetDownloadUrlAsync(DownloadType).ConfigureAwait(false) ??
+            var downloadUrl = await this.GetDownloadUrlAsync(this.settings.DownloadType).ConfigureAwait(false) ??
                               throw new InvalidOperationException("Download URL not found.");
 
             var uri = new Uri(downloadUrl);
             var fileName = Path.GetFileName(uri.LocalPath);
-            var filePath = Path.Combine(ImagesDirectory, fileName);
+            var filePath = Path.Combine(this.settings.ImagesDirectory, fileName);
             progress?.Report($"Downloading {fileName}...");
 
-            Directory.CreateDirectory(ImagesDirectory);
+            Directory.CreateDirectory(this.settings.ImagesDirectory);
 
             using var httpClient = new HttpClient();
 
@@ -137,8 +113,7 @@ public class ServerManager : IDisposable
     /// <returns>A server properties editor.</returns>
     public ServerPropertiesEditor EditProperties()
     {
-        var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
-        var editor = new ServerPropertiesEditor(Path.Combine(serverDirectory, "server.properties"));
+        var editor = new ServerPropertiesEditor(Path.Combine(this.settings.ServerDirectory, "server.properties"));
         return editor;
     }
 
@@ -151,21 +126,20 @@ public class ServerManager : IDisposable
     {
         try
         {
-            var imagePath = Directory.GetFiles(ImagesDirectory, "*.zip").FirstOrDefault() ??
+            var imagePath = Directory.GetFiles(this.settings.ImagesDirectory, "*.zip").FirstOrDefault() ??
                             throw new InvalidOperationException("No image found.");
 
-            var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
             var fileName = Path.GetFileName(imagePath);
-            progress?.Report($"Extracting {fileName} to {serverDirectory}...");
+            progress?.Report($"Extracting {fileName} to {this.settings.ServerDirectory}...");
 
-            if (Directory.Exists(serverDirectory))
+            if (Directory.Exists(this.settings.ServerDirectory))
             {
-                Directory.Delete(serverDirectory, true);
+                Directory.Delete(this.settings.ServerDirectory, true);
             }
 
-            Directory.CreateDirectory(serverDirectory);
+            Directory.CreateDirectory(this.settings.ServerDirectory);
 
-            await Task.Run(() => ExtractFiles(imagePath, serverDirectory)).ConfigureAwait(false);
+            await Task.Run(() => ExtractFiles(imagePath, this.settings.ServerDirectory)).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is
             IOException or
@@ -237,8 +211,7 @@ public class ServerManager : IDisposable
             throw new InvalidOperationException("Server already started.");
         }
 
-        var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
-        var serverExecutable = Path.Combine(serverDirectory, OperatingSystem.IsWindows() ? "bedrock_server.exe" : "bedrock_server");
+        var serverExecutable = Path.Combine(this.settings.ServerDirectory, OperatingSystem.IsWindows() ? "bedrock_server.exe" : "bedrock_server");
 
         if (!File.Exists(serverExecutable))
         {
@@ -258,7 +231,7 @@ public class ServerManager : IDisposable
             var psi = new ProcessStartInfo
             {
                 FileName = serverExecutable,
-                WorkingDirectory = serverDirectory,
+                WorkingDirectory = this.settings.ServerDirectory,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -268,7 +241,7 @@ public class ServerManager : IDisposable
 
             if (!OperatingSystem.IsWindows())
             {
-                psi.Environment["LD_LIBRARY_PATH"] = serverDirectory;
+                psi.Environment["LD_LIBRARY_PATH"] = this.settings.ServerDirectory;
             }
 
             var log = new StringBuilder();
@@ -297,6 +270,12 @@ public class ServerManager : IDisposable
                     this.Output = log.ToString();
                     this.OnOutputChanged();
                 }
+            };
+
+            this.serverProcess.Exited += (_, _) =>
+            {
+                this.serverProcess?.Dispose();
+                this.serverProcess = null;
             };
 
             this.serverProcess.Start();
@@ -341,10 +320,10 @@ public class ServerManager : IDisposable
     /// </summary>
     /// <param name="downloadType">The type of server to download.</param>
     /// <returns>A <see cref="Task" /> representing any asynchronous operation whose result is the link to download a server.</returns>
-    private static async Task<string> GetDownloadUrlAsync(string downloadType)
+    private async Task<string> GetDownloadUrlAsync(string downloadType)
     {
         using var http = new HttpClient();
-        var json = await http.GetStringAsync(Endpoint).ConfigureAwait(false);
+        var json = await http.GetStringAsync(this.settings.Endpoint).ConfigureAwait(false);
         var root = JsonSerializer.Deserialize<JsonObject>(json);
         var links = root?["result"]?["links"]?.AsArray();
 

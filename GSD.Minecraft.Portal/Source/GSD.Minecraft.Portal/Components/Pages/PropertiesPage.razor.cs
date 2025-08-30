@@ -1,5 +1,5 @@
-// <copyright file="Properties.razor.cs" company="GSD Logic">
-//   Copyright © 2025 GSD Logic. All Rights Reserved.
+// <copyright file="PropertiesPage.razor.cs" company="GSD Logic">
+// Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
 namespace GSD.Minecraft.Portal.Components.Pages;
@@ -10,28 +10,34 @@ using Microsoft.AspNetCore.Components;
 /// <summary>
 /// Contains interaction logic for the server properties page.
 /// </summary>
-public partial class Properties
+public partial class PropertiesPage
 {
     /// <summary>
-    /// Gets or sets the server properties editor.
+    /// Gets or sets the navigation manager.
     /// </summary>
-    public ServerPropertiesEditor Editor { get; set; }
-
-    /// <summary>
-    /// Gets or sets the new key to add.
-    /// </summary>
-    public string NewKey { get; set; }
-
-    /// <summary>
-    /// Gets or sets the new value to add.
-    /// </summary>
-    public string NewValue { get; set; }
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
 
     /// <summary>
     /// Gets or sets the server manager.
     /// </summary>
     [Inject]
     public ServerManager ServerManager { get; set; }
+
+    /// <summary>
+    /// Gets or sets the server properties editor.
+    /// </summary>
+    private ServerPropertiesEditor Editor { get; set; }
+
+    /// <summary>
+    /// Gets or sets the new key to add.
+    /// </summary>
+    private string NewKey { get; set; }
+
+    /// <summary>
+    /// Gets or sets the new value to add.
+    /// </summary>
+    private string NewValue { get; set; }
 
     /// <summary>
     /// Method invoked when the component has received parameters from its parent in
@@ -68,5 +74,6 @@ public partial class Properties
     private void Save()
     {
         this.Editor.Save();
+        this.NavigationManager.NavigateTo("/");
     }
 }

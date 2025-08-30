@@ -12,8 +12,4 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
-  <Target Name="EnsureServerDir" BeforeTargets="PreBuildEvent" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <Exec Command="if not exist &quot;$(LocalAppData)\GSD\MinecraftPortal&quot; mkdir &quot;$(LocalAppData)\GSD\MinecraftPortal&quot;" />
-  </Target>
-
 </Project>

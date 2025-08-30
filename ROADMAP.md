@@ -10,7 +10,7 @@
 - [x] Server download, extraction and startup
 - [x] Extract server manager and configure dependency injection
 - [x] Sending commands from the web interface
-- [ ] Provide a UI to configure server properties
+- [x] Provide a UI to configure server properties
 - [ ] Capture process exit and handle graceful shutdown
 - [ ] Display server status
 - [ ] Capture user logins and elevate user permissions

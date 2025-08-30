@@ -1,4 +1,4 @@
-// <copyright file="Error.page.cs" company="GSD Logic">
+// <copyright file="ErrorPage.razor.cs" company="GSD Logic">
 // Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Components;
 /// <summary>
 /// Contains interaction logic for the error page.
 /// </summary>
-public partial class Error
+public partial class ErrorPage
 {
     /// <summary>
     /// Gets or sets the HTTP context.

@@ -1,0 +1,33 @@
+@page "/"
+
+<PageTitle>GSD Minecraft Portal</PageTitle>
+
+<div class="container my-5">
+  <h1>GSD Minecraft Portal</h1>
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    <div>
+      <button type="button" class="btn btn-primary" @onclick="DownloadAsync">Download</button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" @onclick="ExtractAsync">Extract</button>
+    </div>
+    <div>
+      <a href="properties" class="btn btn-primary">Server Properties</a>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" @onclick="StartServer">Start Server</button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" @onclick="@(() => SendCommand("stop"))">Stop Server</button>
+    </div>
+    <div>
+      <button type="button" class="btn btn-primary" @onclick="@(() => SendCommand("gamerule showcoordinates true"))">Show Coordinates</button>
+    </div>
+  </div>
+  <div class="input-group mb-3">
+    <input class="form-control" @bind-value="Command"/>
+    <button type="button" class="btn btn-primary" @onclick="SendCommand">Send</button>
+  </div>
+  <div class="mb-3">@StatusMessage</div>
+  <pre>@Output</pre>
+</div>

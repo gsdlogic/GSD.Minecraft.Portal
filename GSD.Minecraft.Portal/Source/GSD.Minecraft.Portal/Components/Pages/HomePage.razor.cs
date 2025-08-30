@@ -1,4 +1,4 @@
-// <copyright file="Home.razor.cs" company="GSD Logic">
+// <copyright file="HomePage.razor.cs" company="GSD Logic">
 // Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Components;
 /// <summary>
 /// Contains interaction logic for the home page.
 /// </summary>
-public partial class Home
+public partial class HomePage
 {
     /// <summary>
     /// Gets or sets the command to send to the server.
@@ -44,6 +44,23 @@ public partial class Home
             this.Output = this.ServerManager.Output;
             _ = this.InvokeAsync(this.StateHasChanged);
         };
+    }
+
+    /// <summary>
+    /// Method invoked when the component has received parameters from its parent in
+    /// the render tree, and the incoming values have been assigned to properties.
+    /// </summary>
+    protected override void OnParametersSet()
+    {
+        if (!this.RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(this.ServerManager.Output))
+        {
+            this.Output = this.ServerManager.Output;
+        }
     }
 
     /// <summary>
@@ -108,14 +125,15 @@ public partial class Home
     }
 
     /// <summary>
-    /// Starts the server.
+    /// Sends a command to the server.
     /// </summary>
-    private void StartServer()
+    /// <param name="command">The command to send.</param>
+    private void SendCommand(string command)
     {
         try
         {
-            this.ServerManager.StartServer();
-            this.StatusMessage = "Minecraft server started.";
+            this.ServerManager.SendCommand(command);
+            this.StatusMessage = $"> {command}";
         }
         catch (InvalidOperationException ex)
         {
@@ -124,14 +142,14 @@ public partial class Home
     }
 
     /// <summary>
-    /// Stops the server.
+    /// Starts the server.
     /// </summary>
-    private void StopServer()
+    private void StartServer()
     {
         try
         {
-            this.ServerManager.SendCommand("stop");
-            this.StatusMessage = "Minecraft server stopped.";
+            this.ServerManager.StartServer();
+            this.StatusMessage = "Minecraft server started.";
         }
         catch (InvalidOperationException ex)
         {

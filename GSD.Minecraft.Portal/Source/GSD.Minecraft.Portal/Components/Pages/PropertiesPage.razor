@@ -1,0 +1,41 @@
+@page "/properties"
+
+<PageTitle>GSD Minecraft Portal - Server Properties</PageTitle>
+
+<div class="container my-5">
+  <h1>Server Properties</h1>
+  @if (Editor == null)
+  {
+    <div class="d-flex justify-content-center align-items-center" style="height: 100px;">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="mb-3">
+      @foreach (var key in Editor.Keys.OrderBy(key => key))
+      {
+        <div class="input-group mb-1">
+          <div class="input-group-text col-4">@key</div>
+          <input type="text" class="form-control" name="@key" value="@Editor.Get(key)" @oninput="e => Editor.Set(key, e.Value?.ToString())"/>
+          <button type="button" class="btn btn-sm btn-outline-secondary" title="Delete">
+            <i class="bi-x" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+      <div class="input-group mb-1">
+        <input type="text" class="form-control" placeholder="key" @bind-value="NewKey"/>
+        <input type="text" class="form-control" placeholder="value" @bind-value="NewValue"/>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="AddProperty">
+          <i class="bi-plus" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    <div class="d-flex gap-2 justify-content-end">
+      <button type="button" class="btn btn-primary" @onclick="Save">Save</button>
+      <a href="/" class="btn btn-secondary">Cancel</a>
+    </div>
+  }
+</div>
