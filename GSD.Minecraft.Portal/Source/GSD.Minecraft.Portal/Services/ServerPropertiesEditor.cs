@@ -1,5 +1,5 @@
 // <copyright file="ServerPropertiesEditor.cs" company="GSD Logic">
-// Copyright © 2025 GSD Logic. All Rights Reserved.
+//   Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
 namespace GSD.Minecraft.Portal.Services;
@@ -33,6 +33,11 @@ public class ServerPropertiesEditor
         this.filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
         this.Load();
     }
+
+    /// <summary>
+    /// Gets the collection of keys.
+    /// </summary>
+    public IEnumerable<string> Keys => this.properties.Keys;
 
     /// <summary>
     /// Gets the value for the specified key.

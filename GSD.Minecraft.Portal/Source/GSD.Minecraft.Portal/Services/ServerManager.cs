@@ -1,5 +1,5 @@
 // <copyright file="ServerManager.cs" company="GSD Logic">
-// Copyright © 2025 GSD Logic. All Rights Reserved.
+//   Copyright © 2025 GSD Logic. All Rights Reserved.
 // </copyright>
 
 namespace GSD.Minecraft.Portal.Services;
@@ -41,7 +41,7 @@ public class ServerManager : IDisposable
     /// </summary>
     private static readonly string PortalDirectory = OperatingSystem.IsWindows() ?
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GSD", "MinecraftPortal") :
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "gsd", "mcportal");
+        "/opt/mcportal";
 
     /// <summary>
     /// The path to download the servers.
@@ -129,6 +129,17 @@ public class ServerManager : IDisposable
         {
             throw new InvalidOperationException($"Download failed: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Returns a server properties editor.
+    /// </summary>
+    /// <returns>A server properties editor.</returns>
+    public ServerPropertiesEditor EditProperties()
+    {
+        var serverDirectory = Path.Combine(ServersDirectory, ServerIndex.ToString(CultureInfo.InvariantCulture));
+        var editor = new ServerPropertiesEditor(Path.Combine(serverDirectory, "server.properties"));
+        return editor;
     }
 
     /// <summary>
@@ -244,13 +255,6 @@ public class ServerManager : IDisposable
                 }
             }
 
-            ////var editor = new ServerPropertiesEditor(Path.Combine(serverDirectory, "server.properties"));
-            ////editor.Set("server-name", "Portal");
-            ////editor.Set("difficulty", "hard");
-            ////editor.Set("level-name", "Hermitcraft 10");
-            ////editor.Set("level-seed", "5103687417315433447");
-            ////editor.Save();
-
             var psi = new ProcessStartInfo
             {
                 FileName = serverExecutable,
@@ -315,14 +319,13 @@ public class ServerManager : IDisposable
     /// <param name="disposing">Indicates whether managed resources will be disposed.</param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
+        if (!disposing || (this.serverProcess == null))
         {
-            if (this.serverProcess != null)
-            {
-                this.serverProcess.Kill();
-                this.serverProcess.Dispose();
-            }
+            return;
         }
+
+        this.serverProcess.Kill();
+        this.serverProcess.Dispose();
     }
 
     /// <summary>

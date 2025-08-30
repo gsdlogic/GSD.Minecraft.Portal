@@ -688,5 +688,6 @@
     &lt;/Entry&gt;&#xD;
   &lt;/TypePattern&gt;&#xD;
 &lt;/Patterns&gt;</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=mcportal/@EntryIndexedValue">True</s:Boolean>
 
 </wpf:ResourceDictionary>

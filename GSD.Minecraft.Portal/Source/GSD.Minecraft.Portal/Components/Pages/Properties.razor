@@ -1,0 +1,27 @@
+@page "/properties"
+
+@if (Editor == null)
+{
+  <div>Loading ...</div>
+}
+else
+{
+  <div>
+    @foreach (var key in Editor.Keys.OrderBy(key => key))
+    {
+      <div>
+        <span>@key</span>
+        <input type="text" name="@key" value="@Editor.Get(key)" @oninput="e => Editor.Set(key, e.Value?.ToString())" />
+      </div>
+    }
+  </div>
+}
+<div>
+  <input type="text" @bind-value="NewKey"/>
+  <input type="text" @bind-value="NewValue"/>
+  <input type="button" value="+" @onclick="AddProperty"/>
+</div>
+
+<p>
+  <input type="button" value="Save" @onclick="Save" />
+</p>

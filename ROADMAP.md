@@ -13,7 +13,7 @@
 - [ ] Provide a UI to configure server properties
 - [ ] Capture process exit and handle graceful shutdown
 - [ ] Display server status
-- [ ] Capture user logins and elevate user permissins
+- [ ] Capture user logins and elevate user permissions
 - [ ] Set game rules from the web interface
 - [ ] Logging to disk and UI display
 - [ ] Backup and restore functionality
